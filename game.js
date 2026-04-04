@@ -4,6 +4,8 @@
   const GRID = 24;
   const START_TICK_MS = 340;
   const MIN_TICK_MS = 48;
+  const FAST_TICK_FACTOR = 0.55;
+  const FAST_MIN_TICK_MS = 30;
   const SCORE_CURVE_K = 200;
   const HIGH_KEY = "neonSnakeHighScore";
 
@@ -58,6 +60,7 @@
   let state = "title";
 
   let slowKeyHeld = false;
+  let fastKeyHeld = false;
   let scoreMultiplierUntil = 0;
   let chronoUntil = 0;
   let shieldUntil = 0;
@@ -88,9 +91,14 @@
 
   function effectiveTickMs(now) {
     let t = baseTickFromScore(score);
-    if (slowKeyHeld) t = START_TICK_MS;
+    if (slowKeyHeld) {
+      t = START_TICK_MS;
+    } else if (fastKeyHeld) {
+      t *= FAST_TICK_FACTOR;
+    }
     if (now < chronoUntil) t *= 1.5;
-    return Math.max(MIN_TICK_MS * 0.85, t);
+    const floor = fastKeyHeld && !slowKeyHeld ? FAST_MIN_TICK_MS : MIN_TICK_MS * 0.85;
+    return Math.max(floor, t);
   }
 
   function updateThemeClass() {
@@ -181,6 +189,8 @@
     prevSnake = snake.map((s) => ({ ...s }));
     direction = { x: 1, y: 0 };
     pendingDir = null;
+    slowKeyHeld = false;
+    fastKeyHeld = false;
     score = 0;
     scoreMultiplierUntil = 0;
     chronoUntil = 0;
@@ -650,6 +660,12 @@
     if (e.code === "KeyS") {
       slowKeyHeld = true;
     }
+    if (e.code === "KeyF") {
+      if (state === "playing" || state === "paused") {
+        e.preventDefault();
+      }
+      fastKeyHeld = true;
+    }
 
     if (key === " " || key === "spacebar") {
       e.preventDefault();
@@ -680,6 +696,7 @@
 
   function onKeyUp(e) {
     if (e.code === "KeyS") slowKeyHeld = false;
+    if (e.code === "KeyF") fastKeyHeld = false;
   }
 
   btnStart.addEventListener("click", (ev) => {
