@@ -455,38 +455,18 @@
   }
 
   function foodStyle(type) {
-    switch (type) {
-      case FOOD.DOUBLE:
-        return {
-          core: "#a855f7",
-          hi: "#e9d5ff",
-          glow: "rgba(168, 85, 247, 0.65)",
-        };
-      case FOOD.CHRONO:
-        return {
-          core: "#3b82f6",
-          hi: "#93c5fd",
-          glow: "rgba(59, 130, 246, 0.65)",
-        };
-      case FOOD.SHIELD:
-        return {
-          core: "#eab308",
-          hi: "#fef08a",
-          glow: "rgba(234, 179, 8, 0.7)",
-        };
-      case FOOD.GROWTH:
-        return {
-          core: "#ef4444",
-          hi: "#fecaca",
-          glow: "rgba(239, 68, 68, 0.65)",
-        };
-      default:
-        return {
-          core: "#ec4899",
-          hi: "#f9a8d4",
-          glow: "rgba(236, 72, 153, 0.55)",
-        };
+    if (type !== FOOD.NORMAL) {
+      return {
+        core: "#e2e2f0",
+        hi: "#ffffff",
+        glow: "rgba(255, 255, 255, 0.95)",
+      };
     }
+    return {
+      core: "#ec4899",
+      hi: "#f9a8d4",
+      glow: "rgba(236, 72, 153, 0.55)",
+    };
   }
 
   function drawFood() {
@@ -495,6 +475,7 @@
     const y = food.y * cellSize + pad;
     const s = cellSize - pad * 2;
     const st = foodStyle(food.type);
+    const isBonus = food.type !== FOOD.NORMAL;
 
     const g = ctx.createRadialGradient(
       x + s * 0.35,
@@ -509,7 +490,7 @@
 
     ctx.save();
     ctx.shadowColor = st.glow;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = isBonus ? 24 : 20;
     ctx.fillStyle = g;
     fillRoundRect(x, y, s, s, s * 0.38);
     ctx.restore();
