@@ -18,7 +18,8 @@
   };
 
   const BONUS_SCORE_STEP = 50;
-  const BONUS_LIFETIME_MS = 10000;
+  const BONUS_LIFETIME_MS = 30000;
+  const BONUS_EFFECT_MS = 30000;
   const BONUS_TYPES = [
     FOOD.DOUBLE,
     FOOD.CHRONO,
@@ -302,16 +303,25 @@
     const head = snake[0];
     const rawNx = head.x + direction.x;
     const rawNy = head.y + direction.y;
+    const shielded = wall < shieldUntil;
+    const outOfBounds =
+      rawNx < 0 || rawNx >= GRID || rawNy < 0 || rawNy >= GRID;
+
     let nx = rawNx;
     let ny = rawNy;
 
     if (hardcore) {
-      if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID) {
-        gameOver();
-        return;
+      if (outOfBounds) {
+        if (!shielded) {
+          gameOver();
+          return;
+        }
+        portalPulseUntil = wall + 420;
+        nx = wrapCoord(rawNx);
+        ny = wrapCoord(rawNy);
       }
     } else {
-      if (rawNx < 0 || rawNx >= GRID || rawNy < 0 || rawNy >= GRID) {
+      if (outOfBounds) {
         portalPulseUntil = wall + 420;
       }
       nx = wrapCoord(rawNx);
@@ -330,8 +340,6 @@
 
     const eatMain = newHead.x === mainFood.x && newHead.y === mainFood.y;
     const eating = eatMain || hitBonusIdx >= 0;
-
-    const shielded = wall < shieldUntil;
 
     if (!shielded) {
       for (let i = 0; i < snake.length; i++) {
@@ -356,15 +364,15 @@
       }
 
       const hadMult = wall < scoreMultiplierUntil;
-      if (ft === FOOD.DOUBLE) scoreMultiplierUntil = wall + 12000;
+      if (ft === FOOD.DOUBLE) scoreMultiplierUntil = wall + BONUS_EFFECT_MS;
 
       let base = 10;
       if (ft === FOOD.CHRONO) {
         base = 12;
-        chronoUntil = wall + 9000;
+        chronoUntil = wall + BONUS_EFFECT_MS;
       } else if (ft === FOOD.SHIELD) {
         base = 14;
-        shieldUntil = wall + 8000;
+        shieldUntil = wall + BONUS_EFFECT_MS;
       } else if (ft === FOOD.GROWTH) base = 16;
       else if (ft === FOOD.DOUBLE) base = 10;
 
