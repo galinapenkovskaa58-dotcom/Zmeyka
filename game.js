@@ -17,12 +17,12 @@
     GROWTH: "growth",
   };
 
-  const FOOD_WEIGHTS = [
-    [FOOD.NORMAL, 52],
-    [FOOD.DOUBLE, 13],
-    [FOOD.CHRONO, 12],
-    [FOOD.SHIELD, 13],
-    [FOOD.GROWTH, 10],
+  const BONUS_SCORE_STEP = 50;
+  const BONUS_TYPES = [
+    FOOD.DOUBLE,
+    FOOD.CHRONO,
+    FOOD.SHIELD,
+    FOOD.GROWTH,
   ];
 
   const canvas = document.getElementById("game");
@@ -72,16 +72,10 @@
   let trailFrame = 0;
 
   let theme = { tier: 0 };
+  let bonusSpawnQueue = 0;
 
-  function pickWeightedFoodType() {
-    let total = 0;
-    for (let i = 0; i < FOOD_WEIGHTS.length; i++) total += FOOD_WEIGHTS[i][1];
-    let r = Math.random() * total;
-    for (let i = 0; i < FOOD_WEIGHTS.length; i++) {
-      r -= FOOD_WEIGHTS[i][1];
-      if (r <= 0) return FOOD_WEIGHTS[i][0];
-    }
-    return FOOD.NORMAL;
+  function pickRandomBonusType() {
+    return BONUS_TYPES[Math.floor(Math.random() * BONUS_TYPES.length)];
   }
 
   function baseTickFromScore(s) {
@@ -169,7 +163,12 @@
       p = randCell();
       guard++;
     } while (guard < 600 && snake.some((s) => s.x === p.x && s.y === p.y));
-    food = { x: p.x, y: p.y, type: pickWeightedFoodType() };
+    let type = FOOD.NORMAL;
+    if (bonusSpawnQueue > 0) {
+      type = pickRandomBonusType();
+      bonusSpawnQueue--;
+    }
+    food = { x: p.x, y: p.y, type: type };
   }
 
   function readDifficulty() {
@@ -191,6 +190,7 @@
     pendingDir = null;
     slowKeyHeld = false;
     fastKeyHeld = false;
+    bonusSpawnQueue = 0;
     score = 0;
     scoreMultiplierUntil = 0;
     chronoUntil = 0;
@@ -298,7 +298,14 @@
       else if (ft === FOOD.DOUBLE) base = 10;
 
       const mult = hadMult || ft === FOOD.DOUBLE ? 2 : 1;
-      score += base * mult;
+      const add = base * mult;
+      const prevScore = score;
+      const prevTier = Math.floor(prevScore / BONUS_SCORE_STEP);
+      score += add;
+      const newTier = Math.floor(score / BONUS_SCORE_STEP);
+      if (newTier > prevTier) {
+        bonusSpawnQueue += newTier - prevTier;
+      }
       scoreEl.textContent = String(score);
       try {
         if (score > highScore) {
