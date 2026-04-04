@@ -37,6 +37,20 @@ body {
     linear-gradient(180deg, #06060c 0%, var(--bg-deep) 40%, #050508 100%);
 }
 
+body.theme-purple {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(168, 85, 247, 0.14), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(236, 72, 153, 0.1), transparent),
+    linear-gradient(180deg, #0c0614 0%, #0a0818 40%, #050508 100%);
+}
+
+body.theme-pink {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(244, 114, 182, 0.16), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(236, 72, 153, 0.12), transparent),
+    linear-gradient(180deg, #12060e 0%, #0c0610 40%, #050508 100%);
+}
+
 .app {
   width: min(92vw, 760px);
   display: flex;
@@ -56,6 +70,17 @@ body {
   border-radius: 12px;
   box-shadow: var(--glow-cyan);
   backdrop-filter: blur(8px);
+  transition: border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+body.theme-purple .hud {
+  border-color: rgba(168, 85, 247, 0.35);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.45), 0 0 28px rgba(168, 85, 247, 0.25);
+}
+
+body.theme-pink .hud {
+  border-color: rgba(244, 114, 182, 0.4);
+  box-shadow: 0 0 12px rgba(244, 114, 182, 0.5), 0 0 28px rgba(236, 72, 153, 0.28);
 }
 
 .hud__brand {
@@ -64,6 +89,17 @@ body {
   font-size: 0.85rem;
   color: var(--neon-cyan);
   text-shadow: var(--glow-cyan);
+  transition: color 0.5s ease, text-shadow 0.5s ease;
+}
+
+body.theme-purple .hud__brand {
+  color: #c4b5fd;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.7), 0 0 28px rgba(139, 92, 246, 0.35);
+}
+
+body.theme-pink .hud__brand {
+  color: #f9a8d4;
+  text-shadow: 0 0 12px rgba(244, 114, 182, 0.75), 0 0 28px rgba(236, 72, 153, 0.35);
 }
 
 .hud__score,
@@ -87,6 +123,17 @@ body {
   color: var(--neon-magenta);
   text-shadow: var(--glow-magenta);
   min-width: 2.5ch;
+  transition: color 0.5s ease, text-shadow 0.5s ease;
+}
+
+body.theme-purple .hud__value {
+  color: #e9d5ff;
+  text-shadow: 0 0 12px rgba(192, 132, 252, 0.6), 0 0 22px rgba(147, 51, 234, 0.35);
+}
+
+body.theme-pink .hud__value {
+  color: #fbcfe8;
+  text-shadow: 0 0 12px rgba(251, 113, 133, 0.55), 0 0 22px rgba(244, 114, 182, 0.35);
 }
 
 .stage-wrap {
@@ -97,6 +144,23 @@ body {
   box-shadow:
     0 0 0 1px rgba(255, 0, 234, 0.15),
     0 0 40px rgba(0, 245, 255, 0.15),
+    inset 0 0 60px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+body.theme-purple .stage-wrap {
+  border-color: rgba(167, 139, 250, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(192, 132, 252, 0.2),
+    0 0 40px rgba(139, 92, 246, 0.2),
+    inset 0 0 60px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-pink .stage-wrap {
+  border-color: rgba(244, 114, 182, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(251, 113, 133, 0.22),
+    0 0 40px rgba(236, 72, 153, 0.22),
     inset 0 0 60px rgba(0, 0, 0, 0.5);
 }
 
@@ -116,10 +180,11 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 1.5rem;
-  background: rgba(5, 5, 12, 0.82);
-  backdrop-filter: blur(6px);
+  padding: 1rem 1.25rem 1.5rem;
+  background: rgba(5, 5, 12, 0.88);
+  backdrop-filter: blur(8px);
   text-align: center;
+  overflow-y: auto;
 }
 
 .overlay.hidden {
@@ -128,32 +193,122 @@ body {
 
 .overlay__title {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   font-weight: 700;
   color: var(--neon-cyan);
   text-shadow: var(--glow-cyan);
 }
 
+.overlay__sub {
+  margin: -0.25rem 0 0;
+  font-size: 1.1rem;
+  color: #f0abfc;
+  text-shadow: 0 0 10px rgba(232, 121, 249, 0.5);
+}
+
 .overlay__hint {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-dim);
   max-width: 22rem;
   line-height: 1.45;
 }
 
+.overlay__hint--small {
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.title-block,
+.pause-block,
+.gameover-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.difficulty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+}
+
+.difficulty__option {
+  display: block;
+  cursor: pointer;
+}
+
+.difficulty__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.difficulty__card {
+  display: block;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 245, 255, 0.22);
+  background: rgba(10, 14, 28, 0.75);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.difficulty__option input:focus-visible + .difficulty__card {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+}
+
+.difficulty__option input:checked + .difficulty__card {
+  border-color: rgba(0, 245, 255, 0.65);
+  box-shadow: 0 0 16px rgba(0, 245, 255, 0.25), inset 0 0 20px rgba(0, 245, 255, 0.06);
+  background: rgba(0, 40, 48, 0.45);
+}
+
+.difficulty__name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #e0f7ff;
+  margin-bottom: 0.2rem;
+}
+
+.difficulty__desc {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
 .btn {
-  margin-top: 0.5rem;
-  padding: 0.55rem 1.4rem;
+  padding: 0.6rem 1.5rem;
   font: inherit;
   font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn--primary {
   color: #0a0a12;
   background: linear-gradient(135deg, var(--neon-cyan), #00c8d4);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
   box-shadow: var(--glow-cyan);
-  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.btn--secondary {
+  color: #e8f0ff;
+  background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(255, 0, 234, 0.15));
+  border: 1px solid rgba(0, 245, 255, 0.45);
+  box-shadow: 0 0 14px rgba(0, 245, 255, 0.2);
 }
 
 .btn:hover {
@@ -170,7 +325,7 @@ body {
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.35rem 0.6rem;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-dim);
   letter-spacing: 0.02em;
 }
@@ -179,5 +334,9 @@ body {
   .hud__brand {
     width: 100%;
     text-align: center;
+  }
+
+  .overlay__title {
+    font-size: 1.35rem;
   }
 }

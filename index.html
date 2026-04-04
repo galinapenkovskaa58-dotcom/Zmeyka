@@ -20,17 +20,49 @@
       </div>
     </header>
 
-    <div class="stage-wrap">
+    <div class="stage-wrap" id="stageWrap">
       <canvas id="game" width="720" height="720" aria-label="Игровое поле"></canvas>
       <div id="overlay" class="overlay">
-        <p id="overlayTitle" class="overlay__title">Пауза</p>
-        <p class="overlay__hint">Пробел — старт / пауза · Стрелки или WASD</p>
-        <button id="btnResume" type="button" class="btn">Продолжить</button>
+        <p id="overlayTitle" class="overlay__title">Neon Snake</p>
+        <p id="overlaySub" class="overlay__sub hidden"></p>
+
+        <div id="titleBlock" class="title-block">
+          <p class="overlay__hint overlay__hint--small">Выберите режим и нажмите «Начать игру»</p>
+          <div class="difficulty" role="group" aria-label="Сложность">
+            <label class="difficulty__option">
+              <input type="radio" name="difficulty" value="wrap" checked />
+              <span class="difficulty__card">
+                <span class="difficulty__name">Уровень 1</span>
+                <span class="difficulty__desc">Порталы — выход за край с противоположной стороны</span>
+              </span>
+            </label>
+            <label class="difficulty__option">
+              <input type="radio" name="difficulty" value="hardcore" />
+              <span class="difficulty__card">
+                <span class="difficulty__name">Хардкор</span>
+                <span class="difficulty__desc">Столкновение со стеной — конец игры</span>
+              </span>
+            </label>
+          </div>
+          <button id="btnStart" type="button" class="btn btn--primary">Начать игру</button>
+        </div>
+
+        <div id="pauseBlock" class="pause-block hidden">
+          <p id="overlayHint" class="overlay__hint">Пробел — пауза · Удерживайте S — замедление как в начале</p>
+          <button id="btnResume" type="button" class="btn btn--secondary">Продолжить</button>
+        </div>
+
+        <div id="gameoverBlock" class="gameover-block hidden">
+          <p id="overlayHintGo" class="overlay__hint">R — быстрый рестарт · Свайпы на телефоне</p>
+          <button id="btnAgain" type="button" class="btn btn--primary">Играть снова</button>
+        </div>
       </div>
     </div>
 
     <footer class="footer">
-      <span>Стрелки / WASD — направление</span>
+      <span>Стрелки / W A D — направление · ↓ — вниз</span>
+      <span>·</span>
+      <span>Удерж. S — замедление</span>
       <span>·</span>
       <span>Пробел — пауза</span>
       <span>·</span>
