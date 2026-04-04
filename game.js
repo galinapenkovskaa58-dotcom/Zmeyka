@@ -344,10 +344,19 @@
     overlay.classList.remove("hidden");
   }
 
+  function hideOverlayPanels() {
+    titleBlock.classList.add("hidden");
+    pauseBlock.classList.add("hidden");
+    gameoverBlock.classList.add("hidden");
+    overlaySub.classList.add("hidden");
+    overlay.classList.add("hidden");
+  }
+
   function beginPlay() {
     readDifficulty();
     const savedDir = pendingDir;
     const initialDir = { x: 1, y: 0 };
+    hideOverlayPanels();
     resetGame();
     if (savedDir && !isOpposite(savedDir, initialDir)) {
       direction = savedDir;
@@ -355,13 +364,12 @@
     pendingDir = null;
     prevSnake = snake.map((s) => ({ ...s }));
     state = "playing";
-    overlay.classList.add("hidden");
     lastTick = performance.now();
   }
 
   function resumePlay() {
     state = "playing";
-    overlay.classList.add("hidden");
+    hideOverlayPanels();
     lastTick = performance.now();
   }
 
@@ -650,12 +658,9 @@
     if (key === "r") {
       e.preventDefault();
       readDifficulty();
+      hideOverlayPanels();
       resetGame();
       state = "playing";
-      overlay.classList.add("hidden");
-      titleBlock.classList.add("hidden");
-      pauseBlock.classList.add("hidden");
-      gameoverBlock.classList.add("hidden");
       lastTick = performance.now();
       return;
     }
@@ -675,25 +680,29 @@
     if (e.code === "KeyS") slowKeyHeld = false;
   }
 
-  btnStart.addEventListener("click", () => {
-    if (state === "title") beginPlay();
+  btnStart.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (state !== "title") return;
+    if (titleBlock.classList.contains("hidden")) return;
+    beginPlay();
   });
 
-  btnResume.addEventListener("click", () => {
+  btnResume.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
     if (state === "paused") resumePlay();
   });
 
-  btnAgain.addEventListener("click", () => {
-    if (state === "gameover") {
-      readDifficulty();
-      resetGame();
-      state = "playing";
-      overlay.classList.add("hidden");
-      titleBlock.classList.add("hidden");
-      pauseBlock.classList.add("hidden");
-      gameoverBlock.classList.add("hidden");
-      lastTick = performance.now();
-    }
+  btnAgain.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (state !== "gameover") return;
+    readDifficulty();
+    hideOverlayPanels();
+    resetGame();
+    state = "playing";
+    lastTick = performance.now();
   });
 
   let touchStart = null;
