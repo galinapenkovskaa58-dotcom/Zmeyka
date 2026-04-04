@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neon Snake</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="hud">
+      <div class="hud__brand">NEON SNAKE</div>
+      <div class="hud__score">
+        <span class="hud__label">очки</span>
+        <span id="score" class="hud__value">0</span>
+      </div>
+      <div class="hud__high">
+        <span class="hud__label">рекорд</span>
+        <span id="highScore" class="hud__value">0</span>
+      </div>
+    </header>
+
+    <div class="stage-wrap">
+      <canvas id="game" width="720" height="720" aria-label="Игровое поле"></canvas>
+      <div id="overlay" class="overlay">
+        <p id="overlayTitle" class="overlay__title">Пауза</p>
+        <p class="overlay__hint">Пробел — старт / пауза · Стрелки или WASD</p>
+        <button id="btnResume" type="button" class="btn">Продолжить</button>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span>Стрелки / WASD — направление</span>
+      <span>·</span>
+      <span>Пробел — пауза</span>
+      <span>·</span>
+      <span>R — заново</span>
+    </footer>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
