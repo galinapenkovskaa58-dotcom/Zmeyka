@@ -334,6 +334,12 @@
     overlay.classList.remove("hidden");
   }
 
+  /** Сброс поля и переход к выбору сложности (после проигрыша, по R и т.д.) */
+  function openDifficultyScreen() {
+    resetGame();
+    showTitle();
+  }
+
   function showPause() {
     state = "paused";
     overlayTitle.textContent = "Пауза";
@@ -657,11 +663,7 @@
 
     if (key === "r") {
       e.preventDefault();
-      readDifficulty();
-      hideOverlayPanels();
-      resetGame();
-      state = "playing";
-      lastTick = performance.now();
+      openDifficultyScreen();
       return;
     }
 
@@ -698,11 +700,7 @@
     ev.preventDefault();
     ev.stopPropagation();
     if (state !== "gameover") return;
-    readDifficulty();
-    hideOverlayPanels();
-    resetGame();
-    state = "playing";
-    lastTick = performance.now();
+    openDifficultyScreen();
   });
 
   let touchStart = null;
