@@ -18,6 +18,7 @@
   };
 
   const BONUS_SCORE_STEP = 50;
+  const BONUS_LIFETIME_MS = 10000;
   const BONUS_TYPES = [
     FOOD.DOUBLE,
     FOOD.CHRONO,
@@ -45,8 +46,9 @@
   let prevSnake = [];
   let direction = { x: 1, y: 0 };
   let pendingDir = null;
-  /** @type {{ x: number, y: number, type: string }} */
-  let food = { x: 0, y: 0, type: FOOD.NORMAL };
+  let mainFood = { x: 0, y: 0 };
+  /** @type {{ x: number, y: number, type: string, expiresAt: number }[]} */
+  let bonuses = [];
   let score = 0;
   let highScore = 0;
   try {
@@ -156,19 +158,74 @@
     };
   }
 
-  function placeFood() {
+  function cellOccupied(x, y) {
+    if (mainFood.x === x && mainFood.y === y) return true;
+    for (let i = 0; i < bonuses.length; i++) {
+      if (bonuses[i].x === x && bonuses[i].y === y) return true;
+    }
+    for (let i = 0; i < snake.length; i++) {
+      if (snake[i].x === x && snake[i].y === y) return true;
+    }
+    return false;
+  }
+
+  function placeMainFood() {
     let p;
     let guard = 0;
     do {
       p = randCell();
       guard++;
-    } while (guard < 600 && snake.some((s) => s.x === p.x && s.y === p.y));
-    let type = FOOD.NORMAL;
-    if (bonusSpawnQueue > 0) {
-      type = pickRandomBonusType();
-      bonusSpawnQueue--;
+    } while (guard < 600 && cellOccupied(p.x, p.y));
+    mainFood = { x: p.x, y: p.y };
+  }
+
+  function cullExpiredBonuses(wall) {
+    bonuses = bonuses.filter(function (b) {
+      return wall < b.expiresAt;
+    });
+  }
+
+  function trySpawnOneBonus(wall) {
+    for (let attempt = 0; attempt < 400; attempt++) {
+      const p = randCell();
+      if (cellOccupied(p.x, p.y)) continue;
+      bonuses.push({
+        x: p.x,
+        y: p.y,
+        type: pickRandomBonusType(),
+        expiresAt: wall + BONUS_LIFETIME_MS,
+      });
+      return true;
     }
-    food = { x: p.x, y: p.y, type: type };
+    return false;
+  }
+
+  function flushBonusSpawnQueue(wall) {
+    let n = 0;
+    while (bonusSpawnQueue > 0 && n < 24) {
+      if (!trySpawnOneBonus(wall)) break;
+      bonusSpawnQueue--;
+      n++;
+    }
+  }
+
+  function applyScoreDelta(delta) {
+    const prevScore = score;
+    const prevTier = Math.floor(prevScore / BONUS_SCORE_STEP);
+    score += delta;
+    const newTier = Math.floor(score / BONUS_SCORE_STEP);
+    if (newTier > prevTier) {
+      bonusSpawnQueue += newTier - prevTier;
+    }
+    scoreEl.textContent = String(score);
+    try {
+      if (score > highScore) {
+        highScore = score;
+        highScoreEl.textContent = String(highScore);
+        localStorage.setItem(HIGH_KEY, String(highScore));
+      }
+    } catch (_) {}
+    updateThemeClass();
   }
 
   function readDifficulty() {
@@ -199,7 +256,8 @@
     trailSnapshots = [];
     trailFrame = 0;
     lastTick = performance.now();
-    placeFood();
+    bonuses = [];
+    placeMainFood();
     scoreEl.textContent = String(score);
     updateThemeClass();
   }
@@ -235,6 +293,8 @@
 
   function tick(scheduledAt) {
     const wall = performance.now();
+    cullExpiredBonuses(wall);
+
     applyPendingDirection();
 
     prevSnake = snake.map((s) => ({ ...s }));
@@ -259,7 +319,17 @@
     }
 
     const newHead = { x: nx, y: ny };
-    const eating = newHead.x === food.x && newHead.y === food.y;
+
+    let hitBonusIdx = -1;
+    for (let bi = 0; bi < bonuses.length; bi++) {
+      if (bonuses[bi].x === newHead.x && bonuses[bi].y === newHead.y) {
+        hitBonusIdx = bi;
+        break;
+      }
+    }
+
+    const eatMain = newHead.x === mainFood.x && newHead.y === mainFood.y;
+    const eating = eatMain || hitBonusIdx >= 0;
 
     const shielded = wall < shieldUntil;
 
@@ -275,10 +345,11 @@
 
     let newSnake;
 
-    if (eating) {
-      const ft = food.type;
-      newSnake = [newHead, ...snake];
+    if (hitBonusIdx >= 0) {
+      const ft = bonuses[hitBonusIdx].type;
+      bonuses.splice(hitBonusIdx, 1);
 
+      newSnake = [newHead, ...snake];
       if (ft === FOOD.GROWTH) {
         const tail = newSnake[newSnake.length - 1];
         newSnake.push({ ...tail }, { ...tail });
@@ -299,34 +370,33 @@
 
       const mult = hadMult || ft === FOOD.DOUBLE ? 2 : 1;
       const add = base * mult;
-      const prevScore = score;
-      const prevTier = Math.floor(prevScore / BONUS_SCORE_STEP);
-      score += add;
-      const newTier = Math.floor(score / BONUS_SCORE_STEP);
-      if (newTier > prevTier) {
-        bonusSpawnQueue += newTier - prevTier;
-      }
-      scoreEl.textContent = String(score);
-      try {
-        if (score > highScore) {
-          highScore = score;
-          highScoreEl.textContent = String(highScore);
-          localStorage.setItem(HIGH_KEY, String(highScore));
-        }
-      } catch (_) {}
-
-      updateThemeClass();
 
       while (prevSnake.length < newSnake.length) {
         prevSnake.push({ ...snake[snake.length - 1] });
       }
 
-      placeFood();
+      snake = newSnake;
+      applyScoreDelta(add);
+      flushBonusSpawnQueue(wall);
+    } else if (eatMain) {
+      newSnake = [newHead, ...snake];
+
+      const hadMult = wall < scoreMultiplierUntil;
+      const mult = hadMult ? 2 : 1;
+      const add = 10 * mult;
+
+      while (prevSnake.length < newSnake.length) {
+        prevSnake.push({ ...snake[snake.length - 1] });
+      }
+
+      snake = newSnake;
+      applyScoreDelta(add);
+      flushBonusSpawnQueue(wall);
+      placeMainFood();
     } else {
-      newSnake = [newHead, ...snake.slice(0, -1)];
+      snake = [newHead, ...snake.slice(0, -1)];
     }
 
-    snake = newSnake;
     lastTick = scheduledAt;
   }
 
@@ -454,29 +524,46 @@
     ctx.fill();
   }
 
-  function foodStyle(type) {
-    if (type !== FOOD.NORMAL) {
-      return {
-        core: "#e2e2f0",
-        hi: "#ffffff",
-        glow: "rgba(255, 255, 255, 0.95)",
-      };
+  function bonusStyle(type) {
+    switch (type) {
+      case FOOD.DOUBLE:
+        return {
+          core: "#a855f7",
+          hi: "#e9d5ff",
+          glow: "rgba(168, 85, 247, 0.9)",
+        };
+      case FOOD.CHRONO:
+        return {
+          core: "#3b82f6",
+          hi: "#93c5fd",
+          glow: "rgba(59, 130, 246, 0.9)",
+        };
+      case FOOD.SHIELD:
+        return {
+          core: "#eab308",
+          hi: "#fef08a",
+          glow: "rgba(234, 179, 8, 0.95)",
+        };
+      case FOOD.GROWTH:
+        return {
+          core: "#ef4444",
+          hi: "#fecaca",
+          glow: "rgba(239, 68, 68, 0.9)",
+        };
+      default:
+        return {
+          core: "#a855f7",
+          hi: "#e9d5ff",
+          glow: "rgba(168, 85, 247, 0.9)",
+        };
     }
-    return {
-      core: "#ec4899",
-      hi: "#f9a8d4",
-      glow: "rgba(236, 72, 153, 0.55)",
-    };
   }
 
-  function drawFood() {
+  function drawMainFood() {
     const pad = cellSize * 0.17;
-    const x = food.x * cellSize + pad;
-    const y = food.y * cellSize + pad;
+    const x = mainFood.x * cellSize + pad;
+    const y = mainFood.y * cellSize + pad;
     const s = cellSize - pad * 2;
-    const st = foodStyle(food.type);
-    const isBonus = food.type !== FOOD.NORMAL;
-
     const g = ctx.createRadialGradient(
       x + s * 0.35,
       y + s * 0.35,
@@ -485,15 +572,46 @@
       y + s * 0.5,
       s * 0.85
     );
-    g.addColorStop(0, st.hi);
-    g.addColorStop(1, st.core);
+    g.addColorStop(0, "#ffffff");
+    g.addColorStop(1, "#d8d8e8");
 
     ctx.save();
-    ctx.shadowColor = st.glow;
-    ctx.shadowBlur = isBonus ? 24 : 20;
+    ctx.globalAlpha = 1;
+    ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
+    ctx.shadowBlur = 20;
     ctx.fillStyle = g;
     fillRoundRect(x, y, s, s, s * 0.38);
     ctx.restore();
+  }
+
+  function drawBonusPickups(now) {
+    const blink = 0.38 + 0.62 * (0.5 + 0.5 * Math.sin(now * 0.012));
+    for (let i = 0; i < bonuses.length; i++) {
+      const b = bonuses[i];
+      const pad = cellSize * 0.13;
+      const bx = b.x * cellSize + pad;
+      const by = b.y * cellSize + pad;
+      const w = cellSize - pad * 2;
+      const st = bonusStyle(b.type);
+      const g = ctx.createRadialGradient(
+        bx + w * 0.35,
+        by + w * 0.35,
+        0,
+        bx + w * 0.5,
+        by + w * 0.5,
+        w * 0.85
+      );
+      g.addColorStop(0, st.hi);
+      g.addColorStop(1, st.core);
+
+      ctx.save();
+      ctx.globalAlpha = blink;
+      ctx.shadowColor = st.glow;
+      ctx.shadowBlur = 24;
+      ctx.fillStyle = g;
+      fillRoundRect(bx, by, w, w, w * 0.36);
+      ctx.restore();
+    }
   }
 
   function drawTrail(alphaPlaying) {
@@ -621,10 +739,20 @@
       alpha = 1;
     }
 
+    const wallClock = performance.now();
+    cullExpiredBonuses(wallClock);
+    if (
+      (state === "playing" || state === "paused") &&
+      bonusSpawnQueue > 0
+    ) {
+      if (trySpawnOneBonus(wallClock)) bonusSpawnQueue--;
+    }
+
     drawBackground();
     drawPortalRim(now);
     drawTrail(alpha);
-    drawFood();
+    drawMainFood();
+    drawBonusPickups(wallClock);
     drawSnake(state === "playing" ? alpha : 1);
 
     requestAnimationFrame(frame);
