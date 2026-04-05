@@ -18,8 +18,8 @@
   };
 
   const BONUS_SCORE_STEP = 50;
-  const BONUS_LIFETIME_MS = 30000;
-  const BONUS_EFFECT_MS = 30000;
+  const BONUS_LIFETIME_MS = 15000;
+  const BONUS_EFFECT_MS = 15000;
   const BONUS_TYPES = [
     FOOD.DOUBLE,
     FOOD.CHRONO,
