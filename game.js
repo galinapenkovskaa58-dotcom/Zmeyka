@@ -40,6 +40,8 @@
   const btnAgain = document.getElementById("btnAgain");
   const scoreEl = document.getElementById("score");
   const highScoreEl = document.getElementById("highScore");
+  const hudMode = document.getElementById("hudMode");
+  const hudEffects = document.getElementById("hudEffects");
   let cellSize = 1;
   let logicalSize = 720;
 
@@ -232,6 +234,41 @@
   function readDifficulty() {
     const el = document.querySelector('input[name="difficulty"]:checked');
     hardcore = el && el.value === "hardcore";
+  }
+
+  function difficultyLabelFromDom() {
+    const el = document.querySelector('input[name="difficulty"]:checked');
+    if (!el) return "—";
+    return el.value === "hardcore" ? "Хардкор" : "Порталы";
+  }
+
+  function updateHud(wall) {
+    if (!hudMode || !hudEffects) return;
+    if (state === "playing" || state === "paused") {
+      hudMode.textContent = hardcore ? "Хардкор" : "Порталы";
+      const parts = [];
+      if (wall < scoreMultiplierUntil) {
+        parts.push(
+          "×2: " + Math.ceil((scoreMultiplierUntil - wall) / 1000) + " с"
+        );
+      }
+      if (wall < chronoUntil) {
+        parts.push(
+          "Замедление: " + Math.ceil((chronoUntil - wall) / 1000) + " с"
+        );
+      }
+      if (wall < shieldUntil) {
+        parts.push(
+          "Щит: " + Math.ceil((shieldUntil - wall) / 1000) + " с"
+        );
+      }
+      hudEffects.textContent = parts.length ? parts.join(" · ") : "нет";
+      hudEffects.classList.toggle("hud__effects-text--active", parts.length > 0);
+    } else {
+      hudMode.textContent = difficultyLabelFromDom();
+      hudEffects.textContent = "—";
+      hudEffects.classList.remove("hud__effects-text--active");
+    }
   }
 
   function resetGame() {
@@ -755,6 +792,8 @@
     ) {
       if (trySpawnOneBonus(wallClock)) bonusSpawnQueue--;
     }
+
+    updateHud(wallClock);
 
     drawBackground();
     drawPortalRim(now);

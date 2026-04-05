@@ -60,10 +60,9 @@ body.theme-pink {
 
 .hud {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
   padding: 0.65rem 1rem;
   background: var(--bg-panel);
   border: 1px solid rgba(0, 245, 255, 0.25);
@@ -71,6 +70,59 @@ body.theme-pink {
   box-shadow: var(--glow-cyan);
   backdrop-filter: blur(8px);
   transition: border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+.hud__row--main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.hud__row--effects {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.65rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(0, 245, 255, 0.14);
+}
+
+.hud__mode {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.hud__mode-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #a5f3fc;
+  text-shadow: 0 0 8px rgba(0, 245, 255, 0.35);
+}
+
+body.theme-purple .hud__mode-value {
+  color: #ddd6fe;
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.35);
+}
+
+body.theme-pink .hud__mode-value {
+  color: #fbcfe8;
+  text-shadow: 0 0 8px rgba(244, 114, 182, 0.35);
+}
+
+.hud__effects-text {
+  font-size: 0.75rem;
+  color: #c5d0e8;
+  line-height: 1.35;
+  flex: 1;
+  min-width: 0;
+}
+
+.hud__effects-text--active {
+  color: #fef9c3;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.25);
 }
 
 body.theme-purple .hud {
@@ -425,6 +477,16 @@ body.theme-pink .stage-wrap {
   .hud__brand {
     width: 100%;
     text-align: center;
+  }
+
+  .hud__mode {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hud__row--effects {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .overlay__title {

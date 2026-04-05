@@ -9,14 +9,24 @@
 <body>
   <div class="app">
     <header class="hud">
-      <div class="hud__brand">NEON SNAKE</div>
-      <div class="hud__score">
-        <span class="hud__label">очки</span>
-        <span id="score" class="hud__value">0</span>
+      <div class="hud__row hud__row--main">
+        <div class="hud__brand">NEON SNAKE</div>
+        <div class="hud__mode">
+          <span class="hud__label">режим</span>
+          <span id="hudMode" class="hud__mode-value">—</span>
+        </div>
+        <div class="hud__score">
+          <span class="hud__label">очки</span>
+          <span id="score" class="hud__value">0</span>
+        </div>
+        <div class="hud__high">
+          <span class="hud__label">рекорд</span>
+          <span id="highScore" class="hud__value">0</span>
+        </div>
       </div>
-      <div class="hud__high">
-        <span class="hud__label">рекорд</span>
-        <span id="highScore" class="hud__value">0</span>
+      <div class="hud__row hud__row--effects">
+        <span class="hud__label">эффекты</span>
+        <span id="hudEffects" class="hud__effects-text">—</span>
       </div>
     </header>
 
